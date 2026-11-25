@@ -1,6 +1,5 @@
-import java.util.*;
-import com.sun.jna.Native;
-import com.sun.jna.Library;
+import java.util.Random;
+import java.util.Scanner;
 
 public class CozinhaEscura {
     public final static Scanner TECLADO = new Scanner(System.in);
@@ -43,7 +42,7 @@ public class CozinhaEscura {
             }
             System.out.println();
         }
-        System.out.println("Use A, D, W, S para mover o personagem");
+        System.out.println("Use A, D, W, S para mover o personagem\nOs ingredientes são '*'\nOs ratos os '^'");
     }
 
     public static void colocarIngredientes(char[][] cozinha, int ingredTotal) {
@@ -61,17 +60,19 @@ public class CozinhaEscura {
 
     public static void colocarRatos(char[][] cozinha, char[][] cozinha2, int ratosTotal) {
 
-        for (int j = 0; j < ratosTotal; j++) {
+        for (int j = 0; j < ratosTotal;) {
             int ratosLarg = OBJETOS.nextInt(50);
             int ratosAlt = OBJETOS.nextInt(25);
-            if (cozinha[ratosAlt][ratosLarg] == '.' && cozinha2[ratosAlt][ratosLarg] != '^'
-                    && cozinha[ratosAlt][ratosLarg] != '*') {
+            if (cozinha[ratosAlt][ratosLarg] == '.') {
                 cozinha2[ratosAlt][ratosLarg] = '^';
+                j++;
             } else if (cozinha[ratosAlt][ratosLarg] == '*') {
-                if(ratosAlt - 2 >= 0 && ratosLarg - 1 >= 0){
-                cozinha2[ratosAlt - 2][ratosLarg - 1] = '^';
-                }else{
+                if (ratosAlt - 2 >= 0 && ratosLarg - 1 >= 0 && cozinha[ratosAlt - 2][ratosLarg - 1] == '.') {
+                    cozinha2[ratosAlt - 2][ratosLarg - 1] = '^';
+                    j++;
+                } else if(cozinha[ratosAlt + 2][ratosLarg + 1] == '.'){
                     cozinha2[ratosAlt + 2][ratosLarg + 1] = '^';
+                    j++;
                 }
             }
         }
@@ -92,15 +93,14 @@ public class CozinhaEscura {
     }
 
     public static void pegouNaoPegou(int escolha, int tempoRato, int ingredientes, char cozinha[][], char cozinha2[][],
-            int novoIngredAlt, int novoIngredLarg, boolean buzina) {
+            int novoIngredAlt, int novoIngredLarg, boolean buzina, double tempoAgora) {
 
         if (escolha == 1) {
             tempoRato = 3;
-            iniciarCronometro();
+            tempoAgora = BibliotecaTCA.segundosPassados();
             imprimir("Aperte 1 pra pegar de volta!");
-            esperarTecla();
-            if (segundosPassados() >= tempoRato) {
-                imprimir("O rato pegou seu ingrediente...");
+            BibliotecaTCA.esperarTecla();
+            if (BibliotecaTCA.segundosPassados() - tempoAgora >= tempoRato) {
                 ingredientes--;
                 cozinha2[y][x] = '.';
                 novoIngredLarg = OBJETOS.nextInt(50);
@@ -117,104 +117,10 @@ public class CozinhaEscura {
             cozinha2[y][x] = '.';
             if (y + 3 < ALTURA && x + 3 < LARGURA) {
                 cozinha2[y + 3][x + 3] = '^';
-            } else if(y - 3 >= 0 && x - 3 >= 0){
+            } else if (y - 3 >= 0 && x - 3 >= 0) {
                 cozinha2[y - 3][x - 3] = '^';
             }
         }
-    }
-
-    // Liga o Java às funções _kbhit e _getch do Windows (só usada no Windows)
-    public interface Crt extends Library {
-        Crt INSTANCE = Native.load("msvcrt", Crt.class);
-
-        int _kbhit();
-
-        int _getch();
-    }
-
-    static boolean windows = System.getProperty("os.name").toLowerCase().contains("win");
-    static boolean tecladoPreparado = false;
-
-    // Retorna true se alguma tecla foi pressionada. NÃO espera: se nenhuma
-    // tecla foi apertada, retorna false na hora e o jogo continua.
-    public static boolean pressionouTecla() {
-        if (windows) {
-            return Crt.INSTANCE._kbhit() != 0;
-        }
-        prepararTecladoMacLinux();
-        try {
-            return System.in.available() > 0;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    // Retorna o código ASCII da tecla pressionada (ex.: 'a', 'w', 27 = ESC).
-    // Se nenhuma tecla foi apertada, ESPERA até o usuário apertar uma.
-    public static int obtemTeclaPressionada() {
-        if (windows) {
-            return Crt.INSTANCE._getch();
-        }
-        prepararTecladoMacLinux();
-        try {
-            return System.in.read();
-        } catch (Exception e) {
-            return -1;
-        }
-    }
-
-    // Mostra "Pressione uma tecla para continuar..." e PARA o programa
-    // até o jogador apertar qualquer tecla.
-    //
-    // Exemplo:
-    // System.out.println("GAME OVER");
-    // esperarTecla();
-    public static void esperarTecla() {
-        System.out.println("Pressione uma tecla para continuar...");
-        obtemTeclaPressionada(); // fica esperando a tecla
-    }
-
-    // Mac/Linux: faz o terminal entregar cada tecla na hora (sem ENTER) e
-    // sem mostrar a letra na tela. Quando o programa termina, volta ao normal.
-    static void prepararTecladoMacLinux() {
-        if (tecladoPreparado) {
-            return;
-        }
-        tecladoPreparado = true;
-        executarStty("-icanon -echo -icrnl min 1"); // -icrnl: ENTER vira 13, igual ao Windows
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> executarStty("sane")));
-    }
-
-    static void executarStty(String opcoes) {
-        try {
-            new ProcessBuilder("sh", "-c", "stty " + opcoes + " < /dev/tty").start().waitFor();
-        } catch (Exception e) {
-            // se não conseguir, o teclado só vai funcionar com ENTER
-        }
-    }
-
-    // Pausa o programa por um tempo, em milissegundos (1000 = 1 segundo).
-    public static void esperar(int milissegundos) {
-        try {
-            Thread.sleep(milissegundos);
-        } catch (InterruptedException e) {
-            // não faz nada: se a espera for interrompida, o programa só continua
-        }
-    }
-
-    // Guarda o momento em que o cronômetro começou (em milissegundos)
-    static long inicioCronometro = 0;
-
-    // Começa (ou recomeça) a contar o tempo do zero.
-    public static void iniciarCronometro() {
-        inicioCronometro = System.currentTimeMillis();
-    }
-
-    // Retorna quantos segundos passaram desde o iniciarCronometro().
-    // O valor tem casas decimais: 1.5 quer dizer um segundo e meio.
-    public static double segundosPassados() {
-        long agora = System.currentTimeMillis();
-        return (agora - inicioCronometro) / 1000.0;
     }
 
     public static void main(String[] args) {
@@ -229,6 +135,7 @@ public class CozinhaEscura {
         int novoIngredAlt = 0;
         int novoIngredLarg = 0;
         int escolha = 0;
+        double tempoAgora = 0;
 
         imprimir(
                 "[0;37m [0;35m▄▓▓▓▓▓[0;37m   [0;35m▄▓▓▓▄[0;37m   [0;35m▓▓▓▓▓▄[0;37m   [0;35m▓▓▓[0;37m  [0;35m▓▓▓▓▓▄[0;37m   [0;35m▓▓▓[0;37m  [0;35m▓▓[0;37m   [0;35m▄▓▓▓▄[0;37m         [0;35m▄▓▓▓▓▓[0;37m   [0;35m▄▓▓▓▓▓[0;37m   [0;35m▄▓▓▓▓▓[0;37m  [0;35m▓▓▓[0;37m  [0;35m▓▓[0;37m  [0;35m▓▓▓▓▓▄[0;37m    [0;35m▄▓▓▓▄[0;37m  [0m\n"
@@ -296,7 +203,7 @@ public class CozinhaEscura {
         preencherCozinha(cozinha);
         preencherCozinha(cozinha2);
         // Controla a velocidade do jogo
-        esperar(100); // espera 100 milissegundos -> 0,1 segundo
+        BibliotecaTCA.esperar(100); // espera 100 milissegundos -> 0,1 segundo
 
         switch (lanche) {
             case 1:
@@ -305,7 +212,7 @@ public class CozinhaEscura {
                 colocarIngredientes(cozinha, ingredTotal);
                 colocarRatos(cozinha, cozinha2, 65);
                 imprimir("Você tem 40 segundos para pegar 4 ingredientes!");
-                iniciarCronometro(); //cronômetro começa a contar
+                BibliotecaTCA.iniciarCronometro(); // cronômetro começa a contar
 
                 break;
             case 2:
@@ -315,7 +222,7 @@ public class CozinhaEscura {
                 colocarRatos(cozinha, cozinha2, 75);
                 colocarBuzina(cozinha, 1);
                 imprimir("Você tem 50 segundos para pegar 6 ingredientes!");
-                iniciarCronometro();
+                BibliotecaTCA.iniciarCronometro();
 
                 break;
             case 3:
@@ -325,7 +232,7 @@ public class CozinhaEscura {
                 colocarRatos(cozinha, cozinha2, 100);
                 colocarBuzina(cozinha, 1);
                 imprimir("Você tem 1 minuto para pegar 9 ingredientes!");
-                iniciarCronometro();
+                BibliotecaTCA.iniciarCronometro();
 
                 break;
             default:
@@ -333,13 +240,13 @@ public class CozinhaEscura {
                 break;
         }
 
-        BibliotecaTCA.esperar(1000); //espera 1 segundo pra começar o jogo
+        BibliotecaTCA.esperar(1000); // espera 1 segundo pra começar o jogo
         BibliotecaTCA.limparTela();
         System.out.println("Mova o personagem H com W, A, S, D. ESC para sair.");
 
         while (true) {
 
-            if (segundosPassados() >= tempoLimite) { //se o tempo acabar
+            if (BibliotecaTCA.segundosPassados() >= tempoLimite) { // se o tempo acabar
                 BibliotecaTCA.limparTela();
                 imprimir(
                         """
@@ -351,13 +258,13 @@ public class CozinhaEscura {
                                 """);
                 BibliotecaTCA.tocarSom("Sons/226 (3).wav", true);
                 // Som de perda: https://mixkit.co/free-sound-effects/discover/loose/
-                esperarTecla();
+                BibliotecaTCA.esperarTecla();
                 return;
             }
 
             // Lógica para detectar o movimento
-            if (pressionouTecla()) {
-                int tecla = obtemTeclaPressionada();
+            if (BibliotecaTCA.pressionouTecla()) {
+                int tecla = BibliotecaTCA.obtemTeclaPressionada();
                 switch (tecla) {
                     case 'a':
                     case 'A':
@@ -393,9 +300,9 @@ public class CozinhaEscura {
                 // imprimir a cozinha com o novo local do personagem.
                 BibliotecaTCA.limparTela();
                 imprimirCozinha(cozinha); // imprime a nova posição do personagem
-                if (cozinha[y][x] == '&') { //se a posição atual do personagem tem a buzina
-                    buzina = true; //buzina vira true porque o personagem a pegou
-                    cozinha[y][x] = '.'; //onde ela estava, vira mapa normal
+                if (cozinha[y][x] == '&') { // se a posição atual do personagem tem a buzina
+                    buzina = true; // buzina vira true porque o personagem a pegou
+                    cozinha[y][x] = '.'; // onde ela estava, vira mapa normal
                 } else if (cozinha[y][x] == '*') {
                     ingredientes++;
                     cozinha[y][x] = '.'; // o ingrediente some e volta a ser mapa normal
@@ -422,9 +329,23 @@ public class CozinhaEscura {
                     imprimir("O rato pegou seu ingrediente!\n" +
                             "1- Apertar uma tecla para pegar de volta ou\n" +
                             "2- Use a buzina");
-                    escolha = lerValorInteiro();
+                    while (!BibliotecaTCA.pressionouTecla()) {
+                        // n faz nada
+                    }
+                    char t;
+                    while (true) {
+                        if (!BibliotecaTCA.pressionouTecla()) {
+                            int teclaaaaa = BibliotecaTCA.obtemTeclaPressionada();
+                            t = (char) teclaaaaa;
+                            if (t == '1' || t == '2') {
+                                break;
+                            }
+
+                        }
+                    }
+                    escolha = Integer.parseInt("" + (char) t);
                     pegouNaoPegou(escolha, tecla, ingredientes, cozinha, cozinha2, novoIngredAlt, novoIngredLarg,
-                            buzina);
+                            buzina, tempoAgora);
                 }
             }
         }
