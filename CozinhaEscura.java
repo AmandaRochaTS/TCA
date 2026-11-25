@@ -219,6 +219,7 @@ public class CozinhaEscura {
 
     public static void main(String[] args) {
 
+        String nomeJogador;
         int ingredientes = 0;
         char cozinha[][];
         char cozinha2[][];
@@ -242,6 +243,9 @@ public class CozinhaEscura {
                         + //
                         "[0;37m [0;97m▀█████[0;35m▌[0;37m  [0;97m▀███[0;97;45m▀[0;35m▀[0;37m  [0;97m▀██████[0;35m▌[0;37m [0;97m███[0;35m▌[0;37m [0;97m███[0;35m▌[0;37m [0;97m██[0;35m▌[0;37m [0;97m███[0;35m▌[0;37m [0;97m██[0;35m▌[0;37m [0;97m███[0;35m▌[0;37m [0;97m██[0;35m▌[0;37m      [0;97m███████[0;35m▌[0;37m [0;97m██████▀[0;37m   [0;97m▀█████[0;35m▌[0;37m [0;97m▀█████[0;97;45m▀[0;37m  [0;97m███[0;35m▌[0;37m [0;97m██[0;35m▌[0;37m [0;97m███[0;35m▌[0;37m [0;97m██[0;35m▌[0m");
         BibliotecaTCA.esperar(3000);
+        imprimir("Digite seu nome");
+        nomeJogador = TECLADO.nextLine();
+        System.out.printf("Bem vindo(a) ao nosso TCA %s!", nomeJogador);
         int lanche = 0;
         System.out.println();
         imprimir(
