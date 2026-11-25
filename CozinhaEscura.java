@@ -305,6 +305,7 @@ public class CozinhaEscura {
                     cozinha[y][x] = '.'; // onde ela estava, vira mapa normal
                 } else if (cozinha[y][x] == '*') {
                     ingredientes++;
+                    System.out.printf("%d/%d ingredientes", ingredientes, ingredTotal);
                     cozinha[y][x] = '.'; // o ingrediente some e volta a ser mapa normal
                     if (ingredientes == ingredTotal) {
                         BibliotecaTCA.limparTela();
@@ -334,7 +335,7 @@ public class CozinhaEscura {
                     }
                     char t;
                     while (true) {
-                        if (!BibliotecaTCA.pressionouTecla()) {
+                        if (BibliotecaTCA.pressionouTecla()) {
                             int teclaaaaa = BibliotecaTCA.obtemTeclaPressionada();
                             t = (char) teclaaaaa;
                             if (t == '1' || t == '2') {
