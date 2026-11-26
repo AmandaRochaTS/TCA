@@ -42,7 +42,7 @@ public class CozinhaEscura {
             }
             System.out.println();
         }
-        System.out.println("Use A, D, W, S para mover o personagem\nOs ingredientes são '*'\nOs ratos os '^'");
+        System.out.println("Use A, D, W, S para mover o personagem\nOs ingredientes são '*'\nOs ratos estão invisíveis...");
     }
 
     public static void colocarIngredientes(char[][] cozinha, int ingredTotal) {
@@ -115,6 +115,7 @@ public class CozinhaEscura {
             BibliotecaTCA.tocarSom("Sons/226 (2).wav", true);
             // Som de buzina: https://mixkit.co/free-sound-effects/horn/
             cozinha2[y][x] = '.';
+            imprimir("Você espantou o rato!");
             if (y + 3 < ALTURA && x + 3 < LARGURA) {
                 cozinha2[y + 3][x + 3] = '^';
             } else if (y - 3 >= 0 && x - 3 >= 0) {
