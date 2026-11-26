@@ -42,7 +42,7 @@ public class CozinhaEscura {
             }
             System.out.println();
         }
-        System.out.println("Use A, D, W, S para mover o personagem\nOs ingredientes são '*'\nOs ratos estão invisíveis...");
+        System.out.println("Os ingredientes são '*'\nOs ratos estão invisíveis...");
     }
 
     public static void colocarIngredientes(char[][] cozinha, int ingredTotal) {
@@ -243,7 +243,7 @@ public class CozinhaEscura {
 
         BibliotecaTCA.esperar(1000); // espera 1 segundo pra começar o jogo
         BibliotecaTCA.limparTela();
-        System.out.println("Mova o personagem H com W, A, S, D. ESC para sair.");
+        System.out.println("Mova o personagem H com W, A, S, D. Aperte alguma tecla para iniciar e ESC para sair");
 
         while (true) {
 
@@ -330,7 +330,7 @@ public class CozinhaEscura {
                 } else if (cozinha2[y][x] == '^' && ingredientes > 0) {
                     imprimir("O rato pegou seu ingrediente!\n" +
                             "1- Apertar uma tecla para pegar de volta ou\n" +
-                            "2- Use a buzina");
+                            "2- Use a buzina '&'(se tiver)");
                     while (!BibliotecaTCA.pressionouTecla()) {
                         // n faz nada
                     }
